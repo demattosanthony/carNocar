@@ -17,8 +17,10 @@ coords = {}
 iterator = 0
 touch_point = 0
 
-brk = False
+color = (255,0,0)
+thickness = 2.5
 
+brk = False
 def onMouse(event, x, y, flags, params):
     if event == cv2.EVENT_LBUTTONDOWN:
         if params == -1:
