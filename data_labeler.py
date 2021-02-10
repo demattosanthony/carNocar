@@ -7,7 +7,7 @@ def tuplify(listything):
     if isinstance(listything, dict): return {k:tuplify(v) for k,v in listything.items()}
     return listything
 
-parking_spots = json.loads(open('test.txt', 'r').read())
+parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
 image_path = '2020-09-07 13:36:05.466150.png'
@@ -35,7 +35,8 @@ while True:
         # cv2.line(img, spot['tr'], spot['br'], color, thickness)
         # cv2.line(img, spot['br'], spot['bl'], color, thickness)
         # cv2.line(img, spot['bl'], spot['tl'], color, thickness)
-        # cv2.putText(img, str(key[4]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
+        # cv2.putText(img, str(key[4:]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
+
         top_left_x = min([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         bot_right_x = max([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         top_left_y = min([spot['tl'][1], spot['tr'][1], spot['br'][1], spot['bl'][1]])

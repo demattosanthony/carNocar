@@ -7,13 +7,16 @@ def tuplify(listything):
     if isinstance(listything, dict): return {k:tuplify(v) for k,v in listything.items()}
     return listything
 
-parking_spots = json.loads(open('test.txt', 'r').read())
+parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
 image_path = '2020-09-07 13:36:05.466150.png'
+global img
 img = cv2.imread(image_path)
+cache = img.copy()
 
 coords = {}
+global iterator
 iterator = 0
 touch_point = 0
 
@@ -60,6 +63,9 @@ def onMouse(event, x, y, flags, params):
                 coords = parking_spots
                 brk = True
 
+color = (235,76,52)
+thickness = 3
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 def main():
     parser = argparse.ArgumentParser()
@@ -69,11 +75,27 @@ def main():
     cv2.resizeWindow('img', 1000,800)
     cv2.setMouseCallback('img', onMouse, args.spot)
     while True:
+        global img
         cv2.imshow('img', img)
         global brk
+        for key, spot in coords.items():
+            try:
+                cv2.line(img, spot['tl'], spot['tr'], color, thickness)
+                cv2.line(img, spot['tr'], spot['br'], color, thickness)
+                cv2.line(img, spot['br'], spot['bl'], color, thickness)
+                cv2.line(img, spot['bl'], spot['tl'], color, thickness)
+                cv2.putText(img, str(key[4:]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
+            except KeyError:
+                pass
+        if cv2.waitKey(33) == ord('u'):
+            del coords[key]
+            img = cache.copy()
+            global iterator
+            iterator -= 1
         if cv2.waitKey(33) == ord('q') or brk == True:
-            json.dump(coords, open('test.txt', 'w'))
+            json.dump(coords, open('coords.txt', 'w'))
             break
+        
 
 if __name__ == '__main__':
     main()
