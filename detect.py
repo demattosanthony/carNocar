@@ -5,6 +5,10 @@ import cv2
 import torch.nn as nn
 from PIL import Image
 
+if torch.cuda.is_available():
+    map_location='cuda'
+else:
+    map_location='cpu'
 
 def tuplify(listything):
     if isinstance(listything, list): return tuple(map(tuplify, listything))
@@ -18,7 +22,8 @@ image_path = '2020-09-07 13:36:05.466150.png'
 img = cv2.imread(image_path)
 img2 = Image.open(image_path).convert("RGB")
 
-color = (255,0,0)
+empty_color = (0,255,0)
+taken_color = (0,0,255)
 thickness = 2.5
 
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -56,11 +61,10 @@ class ApdNet(torch.nn.Module):
         return num_features
 
 model = ApdNet()
-model.load_state_dict(torch.load('cnr_car_combined_model.pt'))
-
+model.load_state_dict(torch.load('cnr_car_combined_model.pt', map_location=map_location))
 
 while True:
-    # cv2.imshow('img', img)
+    cv2.imshow('img', img)
 
     for key, spot in parking_spots.items():
         top_left_x = min([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
@@ -78,7 +82,18 @@ while True:
         model.eval()
         with torch.no_grad():
             output = model(cropped_img_tns)
-        print(output)
-    # if cv2.waitKey(1) == ord('q'):
-    #     break
-    break
+        if(torch.argmax(output) == 1):
+          cv2.line(img, spot['tl'], spot['tr'], taken_color, 2)
+          cv2.line(img, spot['tr'], spot['br'], taken_color, 2)
+          cv2.line(img, spot['br'], spot['bl'], taken_color, 2)
+          cv2.line(img, spot['bl'], spot['tl'], taken_color, 2)
+        else:
+          cv2.line(img, spot['tl'], spot['tr'], empty_color, 2)
+          cv2.line(img, spot['tr'], spot['br'], empty_color, 2)
+          cv2.line(img, spot['br'], spot['bl'], empty_color, 2)
+          cv2.line(img, spot['bl'], spot['tl'], empty_color, 2)
+        #print(output)
+    #cv2.waitKey(0)
+    print('pass through')
+    if cv2.waitKey(1) == ord('q'):
+         break

@@ -7,3 +7,4 @@ test_images/
 CNRPark-Patches-150x150.zip
 cnr_car_combined_model.pt
 cnr_car_model.pt 
+.venv/

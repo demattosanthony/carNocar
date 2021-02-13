@@ -87,13 +87,17 @@ def main():
                 cv2.putText(img, str(key[4:]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
             except KeyError:
                 pass
-        if cv2.waitKey(33) == ord('u'):
+        k = cv2.waitKey(1)
+
+        if k == ord('u'):
             del coords[key]
             img = cache.copy()
             global iterator
             iterator -= 1
-        if cv2.waitKey(33) == ord('q') or brk == True:
+        elif k == ord('s') or brk == True:
             json.dump(coords, open('coords.txt', 'w'))
+            break
+        elif k == ord('q'):
             break
         
 

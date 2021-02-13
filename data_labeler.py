@@ -10,7 +10,7 @@ def tuplify(listything):
 parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
-image_path = '2020-09-07 13:36:05.466150.png'
+image_path = '2020-09-09 20:28:55.597548.png'
 img = cv2.imread(image_path)
 
 points = []
@@ -42,26 +42,31 @@ while True:
         top_left_y = min([spot['tl'][1], spot['tr'][1], spot['br'][1], spot['bl'][1]])
         bot_right_y = max([spot['tl'][1], spot['tr'][1], spot['br'][1], spot['bl'][1]])
         cropped_img = img[top_left_y:bot_right_y+1, top_left_x:bot_right_x+1]
+        cropped_img = cv2.resize(cropped_img, (150,150))
         cv2.namedWindow('croppedImage', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('croppedImage', 800, 800)
+        cv2.resizeWindow('croppedImage', 150, 150)
 
         while True:
             cv2.imshow('croppedImage', cropped_img)
-            if cv2.waitKey(1) == ord('q'):
+
+            k = cv2.waitKey(1)
+
+            if k == ord('q'):
                 cv2.destroyWindow('croppedImage')
                 print('QUIT')
                 break
-            elif cv2.waitKey(1) == ord('o'):
+            elif k == ord('o'):
                 now = datetime.now().time()
                 cv2.imwrite('data/open/'+str(now)+'.png', cropped_img)
                 cv2.destroyWindow('croppedImage')
                 print('Saved open spot')
                 break
-            elif cv2.waitKey(1) == ord('c'):
+            elif k == ord('c'):
                 now = datetime.now().time()
                 cv2.imwrite('data/cars/'+str(now)+'.png', cropped_img)
                 cv2.destroyWindow('croppedImage')
                 print('Saved car ')
                 break
+    break
     if cv2.waitKey(10) == ord('q'):
         break
