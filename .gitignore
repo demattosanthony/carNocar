@@ -1,6 +1,7 @@
 cnr_park_data/
 test_images/
 models/
-labeled_images//
+labeled_images/
 couch_pklot_images
 .venv/
+data/
