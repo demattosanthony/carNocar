@@ -10,7 +10,7 @@ def tuplify(listything):
 parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
-image_path = '2020-09-15 14:55:28.294815.png'
+image_path = '2020-09-15 15:05:43.668585.png'
 img = cv2.imread(image_path)
 
 points = []
