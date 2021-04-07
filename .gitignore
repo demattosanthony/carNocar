@@ -8,5 +8,6 @@ data/
 __pycache__/
 .DS_Store
 .gitattributes
+.ipynb_checkpoints/
 00_cnn_cnr_dataset.ipynb
 01_cnn_combined_dataset.ipynb
