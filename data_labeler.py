@@ -1,6 +1,13 @@
 import cv2
 from datetime import datetime
 import json
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--img', help='Image Path')
+parser.add_argument('--live', help='Live video if true / img if false', default=True)
+args = parser.parse_args()
+
 
 def tuplify(listything):
     if isinstance(listything, list): return tuple(map(tuplify, listything))
@@ -10,12 +17,12 @@ def tuplify(listything):
 parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
-image_path = '2020-09-15 15:05:43.668585.png'
+image_path = args.img
 img = cv2.imread(image_path)
 
 points = []
 color = (255,0,0)
-thickness = 5
+thickness = 2
 
 def onMouse(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
@@ -26,7 +33,7 @@ cv2.namedWindow("image", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("image", 1000,800)
 cv2.setMouseCallback("image", onMouse)
 
-font = cv2.FONT_HERSHEY_SIMPLEX
+
 while True:
     cv2.imshow('image', img)
     for key, spot in parking_spots.items():
@@ -35,7 +42,7 @@ while True:
         # cv2.line(img, spot['tr'], spot['br'], color, thickness)
         # cv2.line(img, spot['br'], spot['bl'], color, thickness)
         # cv2.line(img, spot['bl'], spot['tl'], color, thickness)
-        # cv2.putText(img, str(key[4:]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
+        # cv2.putText(img, str(key[4:]), spot['tl'], font, 1.5, color, thickness, cv2.LINE_AA)
 
         top_left_x = min([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         bot_right_x = max([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
