@@ -9,7 +9,10 @@ __pycache__/
 .DS_Store
 .gitattributes
 .ipynb_checkpoints/
+<<<<<<< HEAD
 .vscode/
 nohup.out
+=======
+>>>>>>> aadbfda5d04cdc1bcc4155597d2baa58076137cd
 00_cnn_cnr_dataset.ipynb
 01_cnn_combined_dataset.ipynb

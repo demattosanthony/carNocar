@@ -3,75 +3,85 @@ import json
 import torchvision
 import cv2
 import torch.nn as nn
+import torchvision.models as models
 from PIL import Image
+import argparse
+import threading
+from threading import Thread
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--live', help='Live video if true / img if false', default='True')
+parser.add_argument('--img', help='image path', default=False)
+args = parser.parse_args()
+
+#consts
+empty_color = (0,255,0)
+taken_color = (0,0,255)
+thickness = 2.5
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 if torch.cuda.is_available():
     map_location='cuda'
 else:
     map_location='cpu'
 
+SOURCE = 'rtsp://admin:HPUcarcam1@10.33.99.30:554/h264Preview_01_main'
+
+class VideoGet:
+    """
+    Class that continuously gets frames from a VideoCapture object
+    with a dedicated thread.
+    """
+
+    def __init__(self, src=0):
+        self.stream = cv2.VideoCapture(src,cv2.CAP_FFMPEG)
+        (self.grabbed, self.frame) = self.stream.read()
+        self.stopped = False
+
+    def start(self):
+        Thread(target=self.get, args=()).start()
+        return self
+
+    def get(self):
+        while not self.stopped:
+            if not self.grabbed:
+                self.stop()
+            else:
+                (self.grabbed, self.frame) = self.stream.read()
+
+    def stop(self):
+        self.stopped = True
+        self.stream.release()
+
 def tuplify(listything):
     if isinstance(listything, list): return tuple(map(tuplify, listything))
     if isinstance(listything, dict): return {k:tuplify(v) for k,v in listything.items()}
     return listything
 
-parking_spots = json.loads(open('coords.txt', 'r').read())
-parking_spots = tuplify(parking_spots)
-
-image_path = '2020-09-07 13:36:05.466150.png'
-img = cv2.imread(image_path)
-img2 = Image.open(image_path).convert("RGB")
-
-empty_color = (0,255,0)
-taken_color = (0,0,255)
-thickness = 2.5
-
-font = cv2.FONT_HERSHEY_SIMPLEX
-
-#model
-class ApdNet(torch.nn.Module):
-    def __init__(self):
-        super(ApdNet, self).__init__()
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        self.drop_out = nn.Dropout()
-        self.fc1 = nn.Linear(87616, 1000)
-        self.fc2 = nn.Linear(1000, 2)
-    def forward(self,x):
-        #Max pooling over (2,2) window
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out = out.reshape(out.size(0), -1)
-        out = self.drop_out(out)
-        out = self.fc1(out)
-        out = self.fc2(out)
-        return out
+def run_through_model(image_tns, image, spot, model):
+    model.eval()
+    with torch.no_grad():
+        output = model(image_tns)
+    if(torch.argmax(output) == 1):
+        cv2.line(image, spot['tl'], spot['tr'], taken_color, 2)
+        cv2.line(image, spot['tr'], spot['br'], taken_color, 2)
+        cv2.line(image, spot['br'], spot['bl'], taken_color, 2)
+        cv2.line(image, spot['bl'], spot['tl'], taken_color, 2)
+    else:
+        cv2.line(image, spot['tl'], spot['tr'], empty_color, 2)
+        cv2.line(image, spot['tr'], spot['br'], empty_color, 2)
+        cv2.line(image, spot['br'], spot['bl'], empty_color, 2)
+        cv2.line(image, spot['bl'], spot['tl'], empty_color, 2)
     
-    def num_flat_features(self,x):
-        size = x.size()[1:]
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
+    cv2.imshow('img', image)
 
-model = ApdNet()
-model.load_state_dict(torch.load('cnr_car_combined_model.pt', map_location=map_location))
-
-while True:
-    cv2.imshow('img', img)
-
+def zoom_on_spots(image, parking_spots, model):
     for key, spot in parking_spots.items():
         top_left_x = min([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         bot_right_x = max([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         top_left_y = min([spot['tl'][1], spot['tr'][1], spot['br'][1], spot['bl'][1]])
         bot_right_y = max([spot['tl'][1], spot['tr'][1], spot['br'][1], spot['bl'][1]])
-        cropped_img = img[top_left_y:bot_right_y+1, top_left_x:bot_right_x+1]
+        cropped_img = image[top_left_y:bot_right_y+1, top_left_x:bot_right_x+1]
         cropped_img = Image.fromarray(cropped_img)
         # cropped_img = img2.crop()
 
@@ -79,21 +89,39 @@ while True:
         cropped_img_tns = torchvision.transforms.functional.to_tensor(cropped_img_tns)
         cropped_img_tns = cropped_img_tns.unsqueeze(0)
 
-        model.eval()
-        with torch.no_grad():
-            output = model(cropped_img_tns)
-        if(torch.argmax(output) == 1):
-          cv2.line(img, spot['tl'], spot['tr'], taken_color, 2)
-          cv2.line(img, spot['tr'], spot['br'], taken_color, 2)
-          cv2.line(img, spot['br'], spot['bl'], taken_color, 2)
-          cv2.line(img, spot['bl'], spot['tl'], taken_color, 2)
-        else:
-          cv2.line(img, spot['tl'], spot['tr'], empty_color, 2)
-          cv2.line(img, spot['tr'], spot['br'], empty_color, 2)
-          cv2.line(img, spot['br'], spot['bl'], empty_color, 2)
-          cv2.line(img, spot['bl'], spot['tl'], empty_color, 2)
-        #print(output)
-    #cv2.waitKey(0)
-    print('pass through')
-    if cv2.waitKey(1) == ord('q'):
-         break
+        run_through_model(cropped_img_tns, image, spot, model)
+
+def main():
+    #load model
+    model = models.resnet18(pretrained=True)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, 2)
+    model.load_state_dict(torch.load('models/my_data.pt', map_location=map_location))
+
+    #load all parking spot locations
+    parking_spots = json.loads(open('coords.txt', 'r').read())
+    parking_spots = tuplify(parking_spots)
+
+    # live video feed
+    if(args.live == 'True'):
+        print('live')
+        video_getter = VideoGet(SOURCE).start()
+        while True:
+            frame = video_getter.frame
+            zoom_on_spots(frame, parking_spots, model)
+
+            if cv2.waitKey(1) == ord('q'):
+                break
+    # image 
+    else:
+        image_path = args.img
+        img = cv2.imread(image_path)
+        img2 = Image.open(image_path).convert("RGB")
+        while True:
+            zoom_on_spots(img, parking_spots, model)
+            
+            if cv2.waitKey(0) == ord('q'):
+                break
+
+if __name__ == '__main__':
+    main()
