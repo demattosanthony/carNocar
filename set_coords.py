@@ -10,7 +10,7 @@ def tuplify(listything):
 parking_spots = json.loads(open('coords.txt', 'r').read())
 parking_spots = tuplify(parking_spots)
 
-image_path = '2020-09-18 19:00:24.930421.png'
+image_path = '2020-09-23 16:50:51.814074.png'
 global img
 img = cv2.imread(image_path)
 cache = img.copy()
@@ -64,7 +64,7 @@ def onMouse(event, x, y, flags, params):
                 brk = True
 
 color = (235,76,52)
-thickness = 3
+thickness = 2
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 def main():
@@ -74,19 +74,22 @@ def main():
     cv2.namedWindow('img', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('img', 1000,800)
     cv2.setMouseCallback('img', onMouse, args.spot)
+    
     while True:
         global img
-        cv2.imshow('img', img)
+        #cv2.imshow('img', img)
         global brk
-        for key, spot in coords.items():
+        for key, spot in parking_spots.items():
             try:
                 cv2.line(img, spot['tl'], spot['tr'], color, thickness)
                 cv2.line(img, spot['tr'], spot['br'], color, thickness)
                 cv2.line(img, spot['br'], spot['bl'], color, thickness)
                 cv2.line(img, spot['bl'], spot['tl'], color, thickness)
-                cv2.putText(img, str(key[4:]), spot['tl'], font, 3, color, thickness, cv2.LINE_AA)
+                cv2.putText(img, str(key[4:]), spot['tl'], font, 1.5, color, thickness, cv2.LINE_AA)
             except KeyError:
+                print('error')
                 pass
+        cv2.imshow('img', img)
         k = cv2.waitKey(1)
 
         if k == ord('u'):
