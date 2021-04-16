@@ -60,4 +60,9 @@
           
 ## Training
 
-Put data collected into a pytorch DataLoader and used a pretrained restnet to create model
+1. Put data collected into a Pytorch Dataset, with images of cars labeled with a 1 and open spaces labeled with a 0
+2. Resized all images to be of size 150x150
+3. Created Pytorch Dataloader from Dataset of cars and open spaces
+   - Added open spaces dataset twice to Dataloader due to data inbalance 
+4. Chose to use a resnet18 pretrained model to train the data, as well as the Adam optimizer with a learning rate of 0.001
+5. Trained the model for 2 epochs 
