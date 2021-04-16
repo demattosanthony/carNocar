@@ -20,10 +20,7 @@ taken_color = (0,0,255)
 thickness = 2.5
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-if torch.cuda.is_available():
-    map_location='cuda'
-else:
-    map_location='cpu'
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 SOURCE = 'rtsp://admin:HPUcarcam1@10.33.99.30:554/h264Preview_01_main'
 
@@ -87,7 +84,7 @@ def zoom_on_spots(image, parking_spots, model):
 
         cropped_img_tns = torchvision.transforms.functional.resize(cropped_img, (150,150))
         cropped_img_tns = torchvision.transforms.functional.to_tensor(cropped_img_tns)
-        cropped_img_tns = cropped_img_tns.unsqueeze(0)
+        cropped_img_tns = cropped_img_tns.unsqueeze(0).to(device)
 
         run_through_model(cropped_img_tns, image, spot, model)
 
@@ -96,7 +93,8 @@ def main():
     model = models.resnet18(pretrained=True)
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 2)
-    model.load_state_dict(torch.load('models/my_data.pt', map_location=map_location))
+    model.to(device)
+    model.load_state_dict(torch.load('models/my_data2.pt', map_location=device))
 
     #load all parking spot locations
     parking_spots = json.loads(open('coords.txt', 'r').read())
