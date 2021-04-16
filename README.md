@@ -10,14 +10,16 @@
         Scipt to set the coordinates of each parking space withing a given image. Will load a openCV window with 
         the image passed in and wait for four mouse clicks (top left, top right, bottom left, bottom right) to set 
         coordinates of one spot, then will wait for the next four and so on until the program is quit. If you 
-        accidently press the wrong coordinate just press 'u' to undo.
+        accidently press the wrong coordinate just press 'u' to undo. You can set the coordinates of just one spot 
+        by using command line arguments, but the default is to set them for every space.
         
      Command Line Arguments:
         --spot : Allows you to update coordinates of just one parking space, just pass in the spot_id
         --img : Path of image that you want to label the coordinates of each parking space
       
       Output:
-         Will create a coords.txt file, which stoores the location of every parking space with a unique id in a Json format
+         Will create a coords.txt file, which stoores the location of every parking space with a unique id in a Json format.
+         If updates just one spot, it will update just the specific data in coords.txt
          
 ### data_labeler.py 
       Description:
@@ -57,3 +59,5 @@
           spaces that contain cars. 
           
 ## Training
+
+Put data collected into a pytorch DataLoader and used a pretrained restnet to create model
