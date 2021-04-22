@@ -3,7 +3,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 
 # Use a service account
-cred = credentials.Certificate('')
+cred = credentials.Certificate('parking-vision-1-ae16cad5a5ad.json')
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
