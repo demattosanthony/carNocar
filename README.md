@@ -48,17 +48,20 @@
 
 ### detect.py
       Description:
-          Program to run trained pytorch model on either live video or passed in image. Uses python threading for live 
-          video in order to be as real time as possible. Will use each parking space coordinate from coords.txt and pass
-          it throught the model for the predicted output.
+          Multithreaded program to run trained pytorch model on either live video or passed in image. Uses python threading 
+          to continuously get frames from the Video feed in order to be a real time system or else it would fall behind with 
+          the time it takes to get the output from the model. Will use each parking space coordinate from coords.txt and pass
+          it throught the model for the predicted output. Accesses functions from database.py that will update each spots
+          status in the db. 
           
       Command Line Arguments:
           --live : defaults to True to show live video, can set to false to run model on image instead
           --img : path to image that you want to run model on
+          --showOutput : boolean flag that will show OpenCV output window if set to True, defaults to True
           
       Output:
           Will show OpenCV window with green rectangles around predicted open spaces and red rectangles around predicted
-          spaces that contain cars. 
+          spaces that contain cars. Sends each spots status to database. 
           
 ## Training
 
