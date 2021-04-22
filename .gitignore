@@ -13,3 +13,4 @@ __pycache__/
 nohup.out
 00_cnn_cnr_dataset.ipynb
 01_cnn_combined_dataset.ipynb
+parking-vision-1-ae16cad5a5ad.json

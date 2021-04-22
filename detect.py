@@ -8,10 +8,12 @@ from PIL import Image
 import argparse
 import threading
 from threading import Thread
+from database import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--live', help='Live video if true / img if false', default='True')
 parser.add_argument('--img', help='image path', default=False)
+parser.add_argument('--showOutput', help='Show opencv output window', default=True)
 args = parser.parse_args()
 
 #consts
@@ -55,7 +57,8 @@ def tuplify(listything):
     if isinstance(listything, dict): return {k:tuplify(v) for k,v in listything.items()}
     return listything
 
-def run_through_model(image_tns, image, spot, model):
+def run_through_model(image_tns, image, spot, model, spots_ref):
+    spotId = 'spot'+str(spot['id'])
     model.eval()
     with torch.no_grad():
         output = model(image_tns)
@@ -64,15 +67,22 @@ def run_through_model(image_tns, image, spot, model):
         cv2.line(image, spot['tr'], spot['br'], taken_color, 2)
         cv2.line(image, spot['br'], spot['bl'], taken_color, 2)
         cv2.line(image, spot['bl'], spot['tl'], taken_color, 2)
+        if spots_ref[spotId] == 'open':
+            set_spot_status('taken', spotId)
+            print('update')
     else:
         cv2.line(image, spot['tl'], spot['tr'], empty_color, 2)
         cv2.line(image, spot['tr'], spot['br'], empty_color, 2)
         cv2.line(image, spot['br'], spot['bl'], empty_color, 2)
         cv2.line(image, spot['bl'], spot['tl'], empty_color, 2)
+        if spots_ref[spotId] == 'taken':
+            set_spot_status('open', spotId)
+            print('update')
     
-    cv2.imshow('img', image)
+    if args.showOutput == True:
+        cv2.imshow('img', image)
 
-def zoom_on_spots(image, parking_spots, model):
+def zoom_on_spots(image, parking_spots, model, spots_ref):
     for key, spot in parking_spots.items():
         top_left_x = min([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
         bot_right_x = max([spot['tl'][0], spot['tr'][0], spot['br'][0], spot['bl'][0]])
@@ -86,7 +96,7 @@ def zoom_on_spots(image, parking_spots, model):
         cropped_img_tns = torchvision.transforms.functional.to_tensor(cropped_img_tns)
         cropped_img_tns = cropped_img_tns.unsqueeze(0).to(device)
 
-        run_through_model(cropped_img_tns, image, spot, model)
+        run_through_model(cropped_img_tns, image, spot, model, spots_ref)
 
 def main():
     #load model
@@ -106,7 +116,7 @@ def main():
         video_getter = VideoGet(SOURCE).start()
         while True:
             frame = video_getter.frame
-            zoom_on_spots(frame, parking_spots, model)
+            zoom_on_spots(frame, parking_spots, model, spots_ref)
 
             if cv2.waitKey(1) == ord('q'):
                 break
@@ -116,7 +126,7 @@ def main():
         img = cv2.imread(image_path)
         img2 = Image.open(image_path).convert("RGB")
         while True:
-            zoom_on_spots(img, parking_spots, model)
+            zoom_on_spots(img, parking_spots, model, spots_ref)
             
             if cv2.waitKey(0) == ord('q'):
                 break
