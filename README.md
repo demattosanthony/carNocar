@@ -3,6 +3,8 @@
  
  ## Abstract
  
+ This research projects investigates the use of computer vision to locate vacant spaces withing a parking lot then alert a user with a mobile app. Specifcally the effectiveness of a convolutional neural network to classify the difference between a car and a empty parking space, storing the locations in a cloud database, then making the information available within an app will be addressed. 
+ 
  ## Scripts for data collection, labeling, and detection
  
  ### set_coords.py
@@ -61,8 +63,13 @@
 ## Training
 
 1. Put data collected into a Pytorch Dataset, with images of cars labeled with a 1 and open spaces labeled with a 0
-2. Resized all images to be of size 150x150
-3. Created Pytorch Dataloader from Dataset of cars and open spaces
+2. Split data in train and validation sets
+3. Resized all images to be of size 150x150
+4. Created Pytorch Dataloader from Dataset of cars and open spaces
    - Added open spaces dataset twice to Dataloader due to data inbalance 
-4. Chose to use a resnet18 pretrained model to train the data, as well as the Adam optimizer with a learning rate of 0.001
-5. Trained the model for 2 epochs 
+5. Chose to use a resnet18 pretrained model to train the data, as well as the Adam optimizer with a learning rate of 0.001
+6. Trained the model for 2 epochs 
+7. Accuracy of 99% achieved on validation set
+
+
+
