@@ -80,6 +80,8 @@ def run_through_model(image_tns, image, spot, model, spots_ref):
             print('update')
     
     if args.showOutput == True:
+        cv2.namedWindow('img', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('img', 1200, 800)
         cv2.imshow('img', image)
 
 def zoom_on_spots(image, parking_spots, model, spots_ref):
