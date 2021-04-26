@@ -1,7 +1,7 @@
  # High Point University Undergraduate Research Project 
  By: Anthony DeMattos
  
- ![](pk_lot.gif)
+ ![](example.gif)
  
  ## Abstract
  
