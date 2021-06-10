@@ -9,6 +9,7 @@ import argparse
 import threading
 from threading import Thread
 from database import *
+import time 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--live', help='Live video if true / img if false', default='True')
@@ -59,6 +60,7 @@ def tuplify(listything):
 
 def run_through_model(image_tns, image, spot, model, spots_ref):
     spotId = 'spot'+str(spot['id'])
+    # start = time.time()
     model.eval()
     with torch.no_grad():
         output = model(image_tns)
@@ -78,6 +80,8 @@ def run_through_model(image_tns, image, spot, model, spots_ref):
         if spots_ref[spotId] == 'taken':
             set_spot_status('open', spotId)
             print('update')
+    # stop = time.time()
+    # print('time: {:.3f}ms'.format((stop - start) * 1000))
     
     if args.showOutput == True:
         cv2.namedWindow('img', cv2.WINDOW_NORMAL)
@@ -128,8 +132,11 @@ def main():
         img = cv2.imread(image_path)
         img2 = Image.open(image_path).convert("RGB")
         while True:
+            start = time.time()
             zoom_on_spots(img, parking_spots, model, spots_ref)
             
+            stop = time.time()
+            print('time: {:.3f}ms'.format((stop - start) * 1000))
             if cv2.waitKey(0) == ord('q'):
                 break
 
